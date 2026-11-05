@@ -5,6 +5,32 @@ export function setupEditor(el: HTMLElement): EditContext {
   // on textupdate
   ec.addEventListener("textupdate", () => render(el, ec));
 
+  // on beforeinput
+  el.addEventListener("beforeinput", (e) => {
+    // EditContext.textupdate handles;
+    if (
+      e.inputType === "insertText" ||
+      e.inputType === "deleteContentBackward" ||
+      e.inputType === "deleteContentForward"
+    )
+      return;
+
+    // Enter || Shift + Enter
+    if (
+      e.inputType === "insertParagraph" ||
+      e.inputType === "insertLineBreak"
+    ) {
+      e.preventDefault();
+
+      const start = ec.selectionStart;
+      const end = ec.selectionEnd;
+      const min = Math.min(start, end);
+      ec.updateText(start, end, "\n");
+      ec.updateSelection(min + 1, min + 1);
+      render(el, ec);
+    }
+  });
+
   // on selectionchange
   document.addEventListener("selectionchange", () => {
     const sel = document.getSelection();
