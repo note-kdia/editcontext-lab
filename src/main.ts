@@ -1,5 +1,7 @@
 const editor = expectElement<HTMLDivElement>("#editor");
 const ecState = expectElement<HTMLPreElement>("#ec-state");
+const domHtml = expectElement<HTMLPreElement>("#dom-html");
+const domSelection = expectElement<HTMLPreElement>("#dom-selection");
 const log = expectElement<HTMLOListElement>("#log");
 
 const ec = new EditContext();
@@ -8,14 +10,51 @@ editor.editContext = ec;
 ec.addEventListener("textupdate", () => {
   editor.textContent = ec.text;
   renderEcState();
+  renderDomHtml();
+});
+
+document.addEventListener("selectionchange", () => {
+  const sel = document.getSelection();
+  if (!sel || !editor.contains(sel.anchorNode)) return;
+  renderDomSelection();
 });
 
 // EditContextの状態表示用のハンドラ
 function renderEcState() {
   ecState.textContent = [
-    `text: ${JSON.stringify(ec.text)}`,
+    ec.text,
+    "",
     `selection: ${ec.selectionStart}-${ec.selectionEnd}`,
   ].join("\n");
+}
+
+// DOMペインへのHTML表示ハンドラ
+function renderDomHtml() {
+  domHtml.textContent = editor.innerHTML;
+}
+
+// DOMペインのselection表示ハンドラ
+function renderDomSelection() {
+  const sel = document.getSelection();
+  if (!sel) {
+    domSelection.textContent = "no selection";
+    return;
+  }
+  domSelection.textContent = [
+    `anchor: ${describeNode(sel.anchorNode)} offset=${sel.anchorOffset}`,
+    `focus: ${describeNode(sel.focusNode)} offset=${sel.focusOffset}`,
+  ].join("\n");
+}
+
+function describeNode(node: Node | null): string {
+  if (!node) return "null";
+  if (node.nodeType === Node.TEXT_NODE) {
+    return `#text ${JSON.stringify(node.textContent)}`;
+  }
+  if (node instanceof Element) {
+    return `<${node.localName}${node.id ? `#${node.id}` : ""}>`;
+  }
+  return node.nodeName;
 }
 
 // イベントログの登録
@@ -59,6 +98,8 @@ editor.addEventListener("beforeinput", (e) => {
 });
 
 document.addEventListener("selectionchange", () => {
+  const sel = document.getSelection();
+  if (!sel || !editor.contains(sel.anchorNode)) return;
   addLog("selectionchange");
 });
 
