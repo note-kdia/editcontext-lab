@@ -9,6 +9,7 @@ export function setupDebug(editor: HTMLElement, ec: EditContext): void {
   ec.addEventListener("textupdate", (e) => {
     renderEcState();
     renderDomHtml();
+    renderDomSelection();
     addLog(
       `textupdate range=${e.updateRangeStart}-${e.updateRangeEnd} text=${JSON.stringify(e.text)} selection=${e.selectionStart}-${e.selectionEnd}`,
     );
@@ -50,8 +51,9 @@ export function setupDebug(editor: HTMLElement, ec: EditContext): void {
     if (!sel || !sel.anchorNode || !sel.focusNode) return;
     if (!editor.contains(sel.anchorNode) || !editor.contains(sel.focusNode))
       return;
-    renderDomSelection();
     renderEcState();
+    renderDomHtml();
+    renderDomSelection();
     addLog("selectionchange");
   });
 
