@@ -1,13 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>editcontext-lab</title>
+    <style>
+      #editor {
+        border: 1px solid;
+        min-height: 20em;
+      }
+      .panes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1em;
+      }
+      .panes > section {
+        min-width: 0;
+      }
+      pre {
+        overflow-x: auto;
+      }
+      #log {
+        max-height: 40vh;
+        overflow-y: auto;
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <h1>editcontext-lab</h1>
+
+    <h2>Editor</h2>
+    <div id="editor"></div>
+
+    <div class="panes">
+      <section>
+        <h3>EditContext</h3>
+        <pre id="ec-state"></pre>
+      </section>
+      <section>
+        <h3>DOM</h2>
+        <h4>innerHTML</h3>
+        <pre id="dom-html"></pre>
+        <h4>Selection</h3>
+        <pre id="dom-selection"></pre>
+      </section>
+    </div>
+
+    <h2>Events</h2>
+    <button type="button" id="clear-log">clear</button>
+    <ol id="log" reversed></ol>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
