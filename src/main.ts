@@ -41,8 +41,8 @@ function renderDomSelection() {
     return;
   }
   domSelection.textContent = [
-    `anchor: ${describeNode(sel.anchorNode)} offset=${sel.anchorOffset}`,
-    `focus: ${describeNode(sel.focusNode)} offset=${sel.focusOffset}`,
+    `${describeNode(sel.anchorNode)} offset=${sel.anchorOffset}`,
+    `${describeNode(sel.focusNode)} offset=${sel.focusOffset}`,
   ].join("\n");
 }
 
