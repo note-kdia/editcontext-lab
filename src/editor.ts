@@ -7,7 +7,7 @@ export function setupEditor(el: HTMLElement): EditContext {
 
   // on beforeinput
   el.addEventListener("beforeinput", (e) => {
-    // EditContext.textupdate handles;
+    // handled by EditContext (via textupdate)
     if (
       e.inputType === "insertText" ||
       e.inputType === "deleteContentBackward" ||
@@ -45,8 +45,12 @@ export function setupEditor(el: HTMLElement): EditContext {
   return ec;
 }
 
-function render(el: HTMLElement, ec: EditContext) {
-  el.textContent = ec.text;
+// renders editor DOM from EditContext
+function render(el: HTMLElement, ec: EditContext): void {
+  // text sync
+  const children: Node[] = [document.createTextNode(ec.text)];
+  if (ec.text.endsWith("\n")) children.push(document.createElement("br")); // add <br> to handle empty last line
+  el.replaceChildren(...children);
 
   // selection sync: EditContext -> DOM
   const start = offsetToDom(el, ec.selectionStart);
