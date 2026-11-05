@@ -1,0 +1,25 @@
+.panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+}
+.panes > section {
+  min-width: 0;
+}
+
+.panes pre {
+  overflow-x: auto;
+}
+
+#ec-state,
+#dom-html,
+#dom-selection {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#log {
+  max-height: 40vh;
+  overflow-y: auto;
+  font-size: 0.8em;
+}

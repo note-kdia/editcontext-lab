@@ -1,6 +1,9 @@
+import "./editor.css";
+
 export function setupEditor(el: HTMLElement): EditContext {
   const ec = new EditContext();
   el.editContext = ec;
+  el.classList.add("editor");
 
   let formats: TextFormat[] = [];
 

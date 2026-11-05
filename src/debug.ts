@@ -1,3 +1,4 @@
+import "./debug.css";
 import { expectElement, describeNode } from "./dom";
 
 export function setupDebug(editor: HTMLElement, ec: EditContext): void {
