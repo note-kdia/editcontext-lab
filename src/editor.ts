@@ -64,9 +64,14 @@ function render(el: HTMLElement, ec: EditContext): void {
 type DomPosition = { node: Node; offset: number };
 
 function offsetToDom(el: HTMLElement, offset: number): DomPosition {
-  const text = el.firstChild;
-  if (!text) return { node: el, offset: 0 };
-  return { node: text, offset };
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let remaining = offset;
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const len = node.textContent?.length ?? 0;
+    if (remaining <= len) return { node, offset: remaining };
+    remaining -= len;
+  }
+  return { node: el, offset: 0 }; // テキストが空のとき
 }
 
 // selection sync: DOM -> EditContext
