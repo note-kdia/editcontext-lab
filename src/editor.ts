@@ -2,8 +2,10 @@ export function setupEditor(el: HTMLElement): EditContext {
   const ec = new EditContext();
   el.editContext = ec;
 
+  let formats: TextFormat[] = [];
+
   // on textupdate
-  ec.addEventListener("textupdate", () => render(el, ec));
+  ec.addEventListener("textupdate", () => render(el, ec, formats));
 
   // on beforeinput
   el.addEventListener("beforeinput", (e) => {
@@ -27,7 +29,7 @@ export function setupEditor(el: HTMLElement): EditContext {
       const min = Math.min(start, end);
       ec.updateText(start, end, "\n");
       ec.updateSelection(min + 1, min + 1);
-      render(el, ec);
+      render(el, ec, formats);
     }
   });
 
@@ -42,15 +44,25 @@ export function setupEditor(el: HTMLElement): EditContext {
     ec.updateSelection(anchor, focus);
   });
 
+  // on textformatupdate
+  ec.addEventListener("textformatupdate", (e) => {
+    formats = e.getTextFormats();
+    render(el, ec, formats);
+  });
+
+  // on compositionend
+  ec.addEventListener("compositionend", () => {
+    formats = []; // clear underlines on compositionend
+    render(el, ec, formats);
+  });
+
   return ec;
 }
 
 // renders editor DOM from EditContext
-function render(el: HTMLElement, ec: EditContext): void {
+function render(el: HTMLElement, ec: EditContext, formats: TextFormat[]): void {
   // text sync
-  const children: Node[] = [document.createTextNode(ec.text)];
-  if (ec.text.endsWith("\n")) children.push(document.createElement("br")); // add <br> to handle empty last line
-  el.replaceChildren(...children);
+  el.replaceChildren(...buildNodes(ec.text, formats));
 
   // selection sync: EditContext -> DOM
   const start = offsetToDom(el, ec.selectionStart);
@@ -58,6 +70,33 @@ function render(el: HTMLElement, ec: EditContext): void {
   document
     .getSelection()
     ?.setBaseAndExtent(start.node, start.offset, end.node, end.offset);
+}
+
+function buildNodes(text: string, formats: TextFormat[]): Node[] {
+  const nodes: Node[] = [];
+  let pos = 0;
+  const sorted = [...formats].sort((a, b) => a.rangeStart - b.rangeStart);
+
+  for (const f of sorted) {
+    if (pos < f.rangeStart) {
+      nodes.push(document.createTextNode(text.slice(pos, f.rangeStart)));
+    }
+    const span = document.createElement("span");
+    span.textContent = text.slice(f.rangeStart, f.rangeEnd);
+    applyUnderline(span, f);
+    nodes.push(span);
+    pos = f.rangeEnd;
+  }
+  if (pos < text.length) {
+    nodes.push(document.createTextNode(text.slice(pos)));
+  }
+  if (text.endsWith("\n")) nodes.push(document.createElement("br"));
+  return nodes;
+}
+
+function applyUnderline(span: HTMLElement, f: TextFormat): void {
+  span.dataset.underline = f.underlineStyle;
+  span.dataset.thickness = f.underlineThickness;
 }
 
 // selection sync: EditContext -> DOM
