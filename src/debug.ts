@@ -47,8 +47,11 @@ export function setupDebug(editor: HTMLElement, ec: EditContext): void {
 
   document.addEventListener("selectionchange", () => {
     const sel = document.getSelection();
-    if (!sel || !editor.contains(sel.anchorNode)) return;
+    if (!sel || !sel.anchorNode || !sel.focusNode) return;
+    if (!editor.contains(sel.anchorNode) || !editor.contains(sel.focusNode))
+      return;
     renderDomSelection();
+    renderEcState();
     addLog("selectionchange");
   });
 
