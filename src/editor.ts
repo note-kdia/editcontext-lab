@@ -53,6 +53,15 @@ export function setupEditor(el: HTMLElement): EditContext {
     render(el, ec, formats);
   });
 
+  // on characterboundsupdate
+  ec.addEventListener("characterboundsupdate", (e) => {
+    const rects: DOMRect[] = [];
+    for (let i = e.rangeStart; i < e.rangeEnd; i++) {
+      rects.push(charRect(el, i));
+    }
+    ec.updateCharacterBounds(e.rangeStart, rects);
+  });
+
   // on compositionend
   ec.addEventListener("compositionend", () => {
     formats = []; // clear underlines on compositionend
@@ -114,6 +123,15 @@ function offsetToDom(el: HTMLElement, offset: number): DomPosition {
     remaining -= len;
   }
   return { node: el, offset: 0 }; // テキストが空のとき
+}
+
+function charRect(el: HTMLElement, offset: number): DOMRect {
+  const start = offsetToDom(el, offset);
+  const end = offsetToDom(el, offset + 1);
+  const range = document.createRange();
+  range.setStart(start.node, start.offset);
+  range.setEnd(end.node, end.offset);
+  return range.getBoundingClientRect();
 }
 
 // selection sync: DOM -> EditContext
