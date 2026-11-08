@@ -12,28 +12,40 @@ export function setupEditor(el: HTMLElement): EditContext {
 
   // on beforeinput
   el.addEventListener("beforeinput", (e) => {
-    // handled by EditContext (via textupdate)
-    if (
-      e.inputType === "insertText" ||
-      e.inputType === "deleteContentBackward" ||
-      e.inputType === "deleteContentForward"
-    )
-      return;
+    // handled cases `break` -> preventDefault -> render below
+    // unhandled cases `return`
+    switch (e.inputType) {
+      // handled by EditContext (via textupdate)
+      case "insertText":
+      case "deleteContentBackward":
+      case "deleteContentForward":
+        return;
 
-    // Enter || Shift + Enter
-    if (
-      e.inputType === "insertParagraph" ||
-      e.inputType === "insertLineBreak"
-    ) {
-      e.preventDefault();
+      // Enter || Shift + Enter
+      case "insertParagraph":
+      case "insertLineBreak":
+        replaceSelection(ec, "\n");
+        break;
 
-      const start = ec.selectionStart;
-      const end = ec.selectionEnd;
-      const min = Math.min(start, end);
-      ec.updateText(start, end, "\n");
-      ec.updateSelection(min + 1, min + 1);
-      render(el, ec, formats);
+      // Ctrl-V (Paste)
+      case "insertFromPaste": {
+        const text = e.dataTransfer?.getData("text/plain") ?? "";
+        replaceSelection(ec, text.replace(/\r\n?/g, "\n"));
+        break;
+      }
+
+      // Ctrl-X (Cut)
+      case "deleteByCut":
+        replaceSelection(ec, "");
+        break;
+
+      // not handled yet
+      default:
+        return;
     }
+
+    e.preventDefault();
+    render(el, ec, formats);
   });
 
   // on selectionchange
@@ -69,6 +81,13 @@ export function setupEditor(el: HTMLElement): EditContext {
   });
 
   return ec;
+}
+
+// replace selection with text
+function replaceSelection(ec: EditContext, text: string): void {
+  const start = Math.min(ec.selectionStart, ec.selectionEnd);
+  ec.updateText(ec.selectionStart, ec.selectionEnd, text);
+  ec.updateSelection(start + text.length, start + text.length);
 }
 
 // renders editor DOM from EditContext
